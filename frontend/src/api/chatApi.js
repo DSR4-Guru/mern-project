@@ -1,25 +1,29 @@
 import axios from "axios";
 
-export default axios.create({
-
-baseURL:
-
-import.meta.env
-
-.VITE_API_URL
-
+// ✅ Create axios instance
+const client = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
+// (optional) export if needed elsewhere
+export default client;
+
 /**
- * Sends transcribed speech to the backend, which forwards it to Gemini.
- * @param {{ text: string, language: string, sessionId: string }} params
+ * Sends transcribed speech to the backend
  */
 export async function sendMessage({ text, language, sessionId }) {
   try {
-    const { data } = await client.post("/chat", { text, language, sessionId });
+    const { data } = await client.post("/chat", {
+      text,
+      language,
+      sessionId,
+    });
     return data;
   } catch (err) {
-    const message = err.response?.data?.error || err.message || "Failed to reach the assistant.";
+    const message =
+      err.response?.data?.error ||
+      err.message ||
+      "Failed to reach the assistant.";
     throw new Error(message);
   }
 }
@@ -29,7 +33,6 @@ export async function fetchHistory(sessionId) {
     const { data } = await client.get(`/chat/history/${sessionId}`);
     return data;
   } catch (err) {
-    // History is a nice-to-have; fail quietly so the app still works.
     console.warn("Could not load history:", err.message);
     return { history: [], persisted: false };
   }
