@@ -17,9 +17,9 @@ const PORT = process.env.PORT || 5000;
 app.set("trust proxy", 1);
 
 // Connect MongoDB
-connectDB().catch(err =>
-  console.error("MongoDB init failed:", err.message)
-);
+if (process.env.MONGO_URI) {
+  connectDB();
+}
 
 // Allowed frontend origins
 const allowedOrigins = [
