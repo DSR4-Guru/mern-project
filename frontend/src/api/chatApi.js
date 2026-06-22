@@ -1,15 +1,10 @@
 import axios from "axios";
 
-export default axios.create({
+const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL + "/api",
 });
 
-// (optional) export if needed elsewhere
-export default client;
-
-/**
- * Sends transcribed speech to the backend
- */
+// Send message
 export async function sendMessage({ text, language, sessionId }) {
   try {
     const { data } = await client.post("/chat", {
@@ -27,6 +22,7 @@ export async function sendMessage({ text, language, sessionId }) {
   }
 }
 
+// Fetch history
 export async function fetchHistory(sessionId) {
   try {
     const { data } = await client.get(`/chat/history/${sessionId}`);
@@ -37,6 +33,7 @@ export async function fetchHistory(sessionId) {
   }
 }
 
+// Fetch sessions
 export async function fetchSessions() {
   try {
     const { data } = await client.get("/chat/sessions");
@@ -47,6 +44,7 @@ export async function fetchSessions() {
   }
 }
 
+// Clear history
 export async function clearHistory(sessionId) {
   try {
     const { data } = await client.delete(`/chat/history/${sessionId}`);
