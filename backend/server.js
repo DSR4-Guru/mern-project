@@ -95,8 +95,8 @@ app.use((err, req, res, next) => {
 // Start server only in local development
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
-    console.log(`🚀 Speech Assistant API running on port ${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`Speech Assistant API running on port ${PORT}`);
+    console.log(` Health check: http://localhost:${PORT}/api/health`);
   });
 }
 
