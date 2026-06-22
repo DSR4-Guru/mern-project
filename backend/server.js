@@ -1,8 +1,10 @@
-const express = require("express");
-const app = express();
-
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-module.exports = app;
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://mern-project-jade-mu.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
