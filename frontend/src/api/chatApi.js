@@ -1,8 +1,7 @@
 import axios from "axios";
 
-// ✅ Create axios instance
-const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+export default axios.create({
+  baseURL: import.meta.env.VITE_API_URL + "/api",
 });
 
 // (optional) export if needed elsewhere
