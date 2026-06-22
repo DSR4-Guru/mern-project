@@ -1,10 +1,13 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+export default axios.create({
 
-const client = axios.create({
-  baseURL: API_URL,
-  timeout: 25000,
+baseURL:
+
+import.meta.env
+
+.VITE_API_URL
+
 });
 
 /**
