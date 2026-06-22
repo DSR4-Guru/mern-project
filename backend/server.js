@@ -1,7 +1,11 @@
+```javascript
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const mongoose = require("mongoose");
+
 const connectDB = require("./config/db");
 const chatRoutes = require("./routes/chatRoutes");
 const { generalLimiter } = require("./middleware/rateLimiters");
@@ -9,77 +13,91 @@ const { generalLimiter } = require("./middleware/rateLimiters");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Render/Railway/Heroku sit behind a reverse proxy — needed for correct
-// protocol/IP detection (rate limiting, secure cookies, etc. if added later).
+// Trust proxy (Vercel, Render, Railway, etc.)
 app.set("trust proxy", 1);
 
+// Connect MongoDB
 connectDB();
 
-// CLIENT_ORIGIN can be a single URL or a comma-separated list, e.g.
-// "https://aura.vercel.app,https://aura-git-main.vercel.app". Requests with
-// no Origin header (curl, server-to-server, mobile apps) are always allowed.
-const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+// Allowed frontend origins
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-project-jade-mu.vercel.app/",
+];
 
+// Middleware
 app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests without Origin header
+      if (!origin) return callback(null, true);
 
-cors({
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-origin:
-
-[
-
-"http://localhost:5173",
-
-"https://mern-project-mocha-eight.vercel.app/"
-
-],
-
-credentials:true
-
-})
-
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
 );
+
 app.use(express.json({ limit: "100kb" }));
 
-// Security headers (hides X-Powered-By, sets sane defaults for CSP-adjacent
-// headers, etc.). This is an API, not a page, so we disable the
-// content-security-policy directives meant for serving HTML.
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+  })
+);
 
+// Rate limiting
 app.use("/api", generalLimiter);
 
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     time: new Date().toISOString(),
-    dbConnected: require("mongoose").connection.readyState === 1,
+    dbConnected: mongoose.connection.readyState === 1,
   });
 });
 
+// API routes
 app.use("/api/chat", chatRoutes);
 
-// Fallback 404 for unknown API routes
+// 404 handler
 app.use("/api", (req, res) => {
-  res.status(404).json({ error: "Not found" });
+  res.status(404).json({
+    error: "Not found",
+  });
 });
 
-// Centralized error handler (catches anything thrown synchronously in routes)
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
+  console.error("Unhandled error:", err);
+
   if (err.message === "Not allowed by CORS") {
-    return res.status(403).json({ error: "Origin not allowed." });
+    return res.status(403).json({
+      error: "Origin not allowed.",
+    });
   }
-  res.status(500).json({ error: "Internal server error" });
+
+  res.status(500).json({
+    error: "Internal server error",
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Speech Assistant API running on port ${PORT}`);
-  if (allowedOrigins.length) {
-    console.log(`   Allowed origins: ${allowedOrigins.join(", ")}`);
-  } else {
-    console.log("   ⚠️  CLIENT_ORIGIN not set — allowing all origins (fine for local dev only).");
-  }
-});
+// Start server only in local development
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Speech Assistant API running on port ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+  });
+}
+
+// Export app for Vercel Serverless Functions
+module.exports = app;
+```
