@@ -1,20 +1,12 @@
+const express = require("express");
 const cors = require("cors");
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      const allowed = [
-        "http://localhost:5173",
-        "https://mern-project-jade-mu.vercel.app",
-      ];
+const app = express();
 
-      if (!origin || allowed.includes(origin)) {
-        return callback(null, true);
-      }
+app.use(cors({ origin: "*" }));
 
-      return callback(null, true); // TEMP: allow all for debugging
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true });
+});
+
+module.exports = app;
